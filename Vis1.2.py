@@ -1,0 +1,83 @@
+print("Loading...")
+
+import pandas as pd
+import plotly.express as px
+import os
+
+# Load data
+df = pd.read_csv("All_Sale_Barns_Combined.csv")
+
+# Confirm date column name
+df["date"] = pd.to_datetime(df["report_date"], errors="coerce")
+df = df.dropna(subset=["date"])
+
+# Extract week (start of each week)
+df["week"] = df["date"] - pd.to_timedelta(df["date"].dt.weekday, unit='d')
+
+# Make output folder
+os.makedirs("charts_html", exist_ok=True)
+
+# Define weight bins
+weight_bins = list(range(100, 2000, 100))
+weight_labels = [f"{i}-{i+99}" for i in weight_bins[:-1]]
+
+# Find all avg_price and avg_weight columns
+price_cols = [col for col in df.columns if col.endswith("_avg_price")]
+weight_cols = [col for col in df.columns if col.endswith("_avg_weight")]
+
+# Extract prefixes (e.g. "Feeder Cattle_Bulls_Medium and Large_1_None")
+prefixes = [col.replace("_avg_price", "") for col in price_cols]
+
+# Process each price/weight pair
+for prefix in prefixes:
+    price_col = f"{prefix}_avg_price"
+    weight_col = f"{prefix}_avg_weight"
+
+    if weight_col not in df.columns:
+        print(f"⚠️ Skipping {prefix}: No matching weight column")
+        continue
+
+    # Build temp df with this category's data
+    temp = df[["week", price_col, weight_col]].copy()
+    temp = temp.rename(columns={
+        price_col: "avg_price",
+        weight_col: "avg_weight"
+    })
+
+    # Drop rows with missing values
+    temp = temp.dropna(subset=["avg_price", "avg_weight"])
+
+    # Assign weight class
+    temp["weight_class"] = pd.cut(temp["avg_weight"], bins=weight_bins, labels=weight_labels, right=False)
+
+    # Group by week and weight class
+    weekly_avg = temp.groupby(["week", "weight_class"], observed=True).agg(avg_price=("avg_price", "mean")).reset_index()
+
+    # Skip empty
+    if weekly_avg.empty:
+        continue
+
+    # Plot with Plotly
+    fig = px.line(
+        weekly_avg,
+        x="week",
+        y="avg_price",
+        color="weight_class",
+        title=f"Weekly Avg Price: {prefix}",
+        labels={"week": "Week", "avg_price": "Average Price ($/cwt)", "weight_class": "Weight Class"},
+        markers=True
+    )
+
+    fig.update_layout(
+        template="plotly_white",
+        xaxis=dict(showgrid=True),
+        yaxis=dict(showgrid=True),
+        hovermode="x unified",
+        legend=dict(title="Weight Class")
+    )
+
+    # Save HTML file
+    safe_name = prefix.replace(" ", "_").replace("/", "_").replace(":", "_")
+    fig.write_html(f"charts_html/{safe_name}.html")
+
+print("✅ All interactive charts saved to the 'charts_html/' folder.")
