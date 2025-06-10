@@ -7,7 +7,7 @@ Cattle are sold in various different market structures like private treaty, cont
 # Files
 This repository contains the python code files to pull the data from the USDA AMS MMN API, as well as the data transformation of pivoting information to create single entries for each sale. Plus there are also files for creating average price trend visualization based on the commodity, class, frame size, and muscle grade. 
 
-"Filters and More" is a file added to break down the slug_ids and the titles of the filter data, and the available information for each tytle.
+"Filters and More" is a file added to break down the slug_ids and the titles of the filter data, and the available information for each tittle.
 
 # Code 
 This code allows for the user to choose the sale barns they would like to pull data from and the time frame. For the code available it pulls data from all the sale bars in Florida. To change these find the slug_ids for the markets you wish to pull and update the code. 
