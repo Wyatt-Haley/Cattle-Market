@@ -10,7 +10,7 @@ This repository contains the python code along with the text files to pull the d
 To use, insure all packages used are downloaded, then place the files where you wish to save the contents and open or run the api1.2.py file then the vis1.2.py file to get the graphics.
 
 # Code 
-This code allows for the user to choose the sale barns they would like to pull data from and the time frame. For the code available it pulls data from the all the sale bars in Florida. To change these find the slug_ids for the markets you wish to pull and update the code. 
+This code allows for the user to choose the sale barns they would like to pull data from and the time frame. For the code available it pulls data from all the sale bars in Florida. To change these find the slug_ids for the markets you wish to pull and update the code. 
 
 # Troule shooting
 It is known that some sale barns do not update their numbers with the USDA AMS so work is being done to gather this additional information as the sales are happening, however the reports are not similar and for the sake of time will be revisited after the tool is more developed. 
