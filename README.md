@@ -9,6 +9,8 @@ This repository contains the python code along with the text files to pull the d
 
 To use, insure all packages used are downloaded, then place the files where you wish to save the contents and open or run the api1.2.py file then the vis1.2.py file to get the graphics.
 
+"Filters and More" is a file added to break down the slug_ids and the titles of the filter data, and the available information for each tytle.
+
 # Code 
 This code allows for the user to choose the sale barns they would like to pull data from and the time frame. For the code available it pulls data from all the sale bars in Florida. To change these find the slug_ids for the markets you wish to pull and update the code. 
 
