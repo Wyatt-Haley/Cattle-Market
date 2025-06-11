@@ -22,7 +22,7 @@ Thanks for stopping by and hope this code is helpful, please write if there are 
 https://mymarketnews.ams.usda.gov/
 
 # How to use
-- Insure Python and all packages used are downloaded
+- Ensure Python and all packages used are downloaded
 - Place the files where you wish to save the contents
 - Edit slug_id list for selected barns and time frame
 - Optain API key (this can be done by creating a account via the USDA AMS MMN)
