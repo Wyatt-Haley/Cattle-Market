@@ -10,7 +10,7 @@ save_folder = "."
 # Function to fetch and process report data for a given slug_id and time period
 def process_slug(slug_id, timeperiod, save_folder="."):
     # Construct API URL
-    api_key = 'N/KUHW09nFDKpw8mkA5qDQyXwgbfKhqmp/Y/thtybGo='
+    api_key = 'CHANGE THIS TO YOUR KEY'
     url = f'https://marsapi.ams.usda.gov/services/v1.2/reports/{slug_id}?{timeperiod}'
 
     # Pull and parse data
