@@ -1,8 +1,8 @@
 # Filter break down 
 
-Commodity - Class - Frame - Muscle Grade - Muscle Grade for Slaughter Cows
+Commodity - Class - Frame - Muscle Grade - Muscle Grade for Slaughter Cows - Weight Class(WC - in bins of 100)
 
---------_----_---_-----_
+--------_----_---_-----_WC
 
 Feeder Cattle_Bulls_Medium and Large_1_None_
 Feeder Cattle_Bulls_Medium and Large_2_None_
