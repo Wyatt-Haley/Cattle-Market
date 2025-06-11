@@ -22,8 +22,9 @@ Thanks for stopping by and hope this code is helpful, please write if there are 
 https://mymarketnews.ams.usda.gov/
 
 # How to use
-- insure all packages used are downloaded
-- place the files where you wish to save the contents
+- Insure Python and all packages used are downloaded
+- Place the files where you wish to save the contents
 - Edit slug_id list for selected barns and time frame
-- open or run the api1.3.py file
-- then vis1.3.py  to get the graphics
+- Optain API key (this can be done by creating a account via the USDA AMS MMN)
+- Open or run the api1.3.py file
+- Then vis1.3.py to get the graphics
