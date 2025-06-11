@@ -25,5 +25,5 @@ https://mymarketnews.ams.usda.gov/
 - insure all packages used are downloaded
 - place the files where you wish to save the contents
 - Edit slug_id list for selected barns and time frame
-- open or run the api1.2.py file
-- then vis1.2.py  to get the graphics
+- open or run the api1.3.py file
+- then vis1.3.py  to get the graphics
