@@ -2,105 +2,235 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Florida Cattle Market Charts</title>
+  <title>Florida Cattle Market Average Reports</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       background-color: #f8f8f8;
       padding: 2em;
+      max-width: 100%;
       margin: auto;
-      max-width: 1200px;
     }
 
     h1 {
       text-align: center;
-      margin-bottom: 1em;
     }
 
-    .tabs {
-      display: flex;
-      gap: 1em;
-      justify-content: center;
-      margin-bottom: 1em;
+    .tab-buttons, .sub-tab-buttons {
+      margin: 1em 0;
     }
 
-    .tabs button {
-      padding: 0.5em 1em;
-      border: none;
-      border-radius: 5px;
-      background-color: #ddd;
+    .tab-buttons button,
+    .sub-tab-buttons button {
+      margin-right: 5px;
+      padding: 8px 12px;
       cursor: pointer;
+      background-color: #e0e0e0;
+      border: none;
+      border-radius: 4px;
     }
 
-    .tabs button.active {
+    .tab-buttons button.active-tab,
+    .sub-tab-buttons button.active-sub-tab {
       background-color: #2196f3;
       color: white;
+      font-weight: bold;
     }
 
-    .tab-content {
+    .tab-content, .sub-tab-content {
       display: none;
     }
 
-    .tab-content.active {
+    .tab-content.active,
+    .sub-tab-content.active {
       display: block;
+    }
+
+    .chart-wrapper {
+      text-align: center;
+      margin-bottom: 2em;
+      position: relative;
+      width: 100%;
+      overflow: visible;
+      padding: 0;
+      box-sizing: border-box;
     }
 
     iframe {
       width: 100%;
-      height: 850px;
+      max-width: 2000px;
+      height: 700px;
       border: none;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin: 1em auto 2em auto;
+      display: block;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
   </style>
 </head>
 <body>
-  <h1>Florida Cattle Market Charts</h1>
-
-  <div class="tabs">
-    <button onclick="switchTab(0)" class="active">Chart 1</button>
-    <button onclick="switchTab(1)">Chart 2</button>
-    <button onclick="switchTab(2)">Chart 3</button>
-  </div>
-
-  <div class="tab-content active">
-    <iframe data-src="charts_html/Feeder_Cattle_Bulls_Medium_and_Large_1_None_.html"></iframe>
-  </div>
-  <div class="tab-content">
-    <iframe data-src="charts_html/Feeder_Cattle_Bulls_Medium_and_Large_2_None_.html"></iframe>
-  </div>
-  <div class="tab-content">
-    <iframe data-src="charts_html/Feeder_Cattle_Bulls_Medium_and_Large_3_None_.html"></iframe>
-  </div>
+  <h1>Florida Cattle Market Average Reports</h1>
+  <div class="tab-buttons" id="main-tabs"></div>
+  <div id="tab-contents"></div>
 
   <script>
-    function switchTab(index) {
-      const tabs = document.querySelectorAll('.tab-content');
-      const buttons = document.querySelectorAll('.tabs button');
+    const chartFiles = [
+      "charts_html/Feeder_Cattle_Bulls_Medium_and_Large_1_None_.html",
+      "charts_html/Feeder_Cattle_Bulls_Medium_and_Large_2_None_.html",
+      "charts_html/Feeder_Cattle_Bulls_Medium_and_Large_3_None_.html",
+      "charts_html/Feeder_Cattle_Heifers_Medium_and_Large_1_None_.html",
+      "charts_html/Feeder_Cattle_Heifers_Medium_and_Large_2_None_.html",
+      "charts_html/Feeder_Cattle_Heifers_Medium_and_Large_3_None_.html",
+      "charts_html/Feeder_Cattle_Steers_Medium_and_Large_1_None_.html",
+      "charts_html/Feeder_Cattle_Steers_Medium_and_Large_2_None_.html",
+      "charts_html/Feeder_Cattle_Steers_Medium_and_Large_3_None_.html",
+      "charts_html/Replacement_Cattle_Bred_Cows_Large_1-2_None_.html",
+      "charts_html/Replacement_Cattle_Bred_Cows_Medium_and_Large_1-2_None_.html",
+      "charts_html/Replacement_Cattle_Bred_Cows_Medium_and_Large_2-3_None_.html",
+      "charts_html/Replacement_Cattle_Bred_Cows_Small_and_Medium_1-2_None_.html",
+      "charts_html/Replacement_Cattle_Cow-Calf_Pairs_Medium_and_Large_1-2_None_.html",
+      "charts_html/Replacement_Cattle_Cow-Calf_Pairs_Small_3_None_.html",
+      "charts_html/Replacement_Cattle_Cow-Calf_Pairs_Small_and_Medium_1-2_None_.html",
+      "charts_html/Replacement_Cattle_Stock_Cows_Medium_and_Large_1-2_None_.html",
+      "charts_html/Slaughter_Cattle_Bulls_N_A_N_A_N_A_.html",
+      "charts_html/Slaughter_Cattle_Cows_N_A_N_A_Boner_80-85%_.html",
+      "charts_html/Slaughter_Cattle_Cows_N_A_N_A_Breaker_75-80%_.html",
+      "charts_html/Slaughter_Cattle_Cows_N_A_N_A_Lean_85-90%_.html"
+    ];
 
-      tabs.forEach((tab, i) => {
-        const iframe = tab.querySelector("iframe");
-        if (i === index) {
-          tab.classList.add('active');
-          buttons[i].classList.add('active');
+    const gradeOrder = ["1", "1-2", "2", "2-3", "3"];
+    const structure = {};
 
-          // Lazy-load iframe if not yet loaded
-          if (!iframe.src) {
-            iframe.src = iframe.dataset.src;
-          }
+    chartFiles.forEach(file => {
+      const parts = file.replace('charts_html/', '').replace('.html', '').split('_');
+      const category = parts[0] + ' ' + parts[1];
+      const type = parts[2];
+      const grade = parts[parts.length - 3];
+
+      if (!structure[category]) structure[category] = {};
+      if (!structure[category][type]) structure[category][type] = {};
+      if (!structure[category][type][grade]) structure[category][type][grade] = [];
+
+      structure[category][type][grade].push(file);
+    });
+
+    const tabContainer = document.getElementById('main-tabs');
+    const contentContainer = document.getElementById('tab-contents');
+
+    Object.keys(structure).forEach((category, catIdx) => {
+      const tabId = `tab-${catIdx}`;
+      const tabBtn = document.createElement('button');
+      tabBtn.innerText = category;
+      tabBtn.onclick = () => switchTab(tabId);
+      tabContainer.appendChild(tabBtn);
+
+      const tabContent = document.createElement('div');
+      tabContent.className = 'tab-content';
+      tabContent.id = tabId;
+
+      const subTabBtnWrapper = document.createElement('div');
+      subTabBtnWrapper.className = 'sub-tab-buttons';
+      tabContent.appendChild(subTabBtnWrapper);
+
+      const subContentWrapper = document.createElement('div');
+      tabContent.appendChild(subContentWrapper);
+
+      const types = structure[category];
+
+      Object.keys(types).forEach((type, typeIdx) => {
+        const subId = `${tabId}-sub-${typeIdx}`;
+        const subBtn = document.createElement('button');
+        subBtn.innerText = type;
+        subBtn.onclick = () => switchSubTab(subId, subContentWrapper);
+        subTabBtnWrapper.appendChild(subBtn);
+
+        const subContent = document.createElement('div');
+        subContent.className = 'sub-tab-content';
+        subContent.id = subId;
+
+        const grades = types[type];
+
+        // CUSTOM SORTING of grades for Slaughter Cattle > Cows
+        let sortedGrades;
+        if (category === "Slaughter Cattle" && type === "Cows") {
+          const slaughterCowsOrder = ["Breaker", "Boner", "Lean"];
+          sortedGrades = Object.keys(grades).sort((a, b) => {
+            const indexA = slaughterCowsOrder.indexOf(a);
+            const indexB = slaughterCowsOrder.indexOf(b);
+            if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+            if (indexA === -1) return 1;
+            if (indexB === -1) return -1;
+            return indexA - indexB;
+          });
         } else {
-          tab.classList.remove('active');
-          buttons[i].classList.remove('active');
+          sortedGrades = Object.keys(grades).sort((a, b) => gradeOrder.indexOf(a) - gradeOrder.indexOf(b));
+        }
+
+        sortedGrades.forEach(grade => {
+          const showGrade = !(category === "Slaughter Cattle" && type === "Bulls");
+          if (showGrade && grade !== "N" && grade !== "N/A") {
+            const gradeTitle = document.createElement('h3');
+            gradeTitle.innerText = `Grade ${grade}`;
+            subContent.appendChild(gradeTitle);
+          }
+
+          grades[grade].forEach(file => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'chart-wrapper';
+
+            const iframe = document.createElement('iframe');
+            iframe.dataset.src = file;
+            iframe.style.display = 'none';
+            iframe.setAttribute("scrolling", "no");
+            iframe.setAttribute("sandbox", "allow-scripts allow-same-origin");
+
+            iframe.onload = () => {
+              iframe.style.display = 'block';
+            };
+
+            wrapper.appendChild(iframe);
+            subContent.appendChild(wrapper);
+          });
+        });
+
+        subContentWrapper.appendChild(subContent);
+      });
+
+      contentContainer.appendChild(tabContent);
+    });
+
+    function switchTab(id) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+
+      document.querySelectorAll('.tab-buttons button').forEach(btn => btn.classList.remove('active-tab'));
+      const tabButtons = document.querySelectorAll('.tab-buttons button');
+      const index = [...document.querySelectorAll('.tab-content')].findIndex(el => el.id === id);
+      if (tabButtons[index]) tabButtons[index].classList.add('active-tab');
+
+      const firstSubTab = document.querySelector(`#${id} .sub-tab-content`);
+      if (firstSubTab) switchSubTab(firstSubTab.id, firstSubTab.parentElement);
+    }
+
+    function switchSubTab(subId, container) {
+      container.querySelectorAll('.sub-tab-content').forEach(el => el.classList.remove('active'));
+      const newTab = document.getElementById(subId);
+      newTab.classList.add('active');
+
+      const buttons = container.previousElementSibling.querySelectorAll('button');
+      buttons.forEach(btn => btn.classList.remove('active-sub-tab'));
+
+      const index = [...container.querySelectorAll('.sub-tab-content')].findIndex(el => el.id === subId);
+      if (buttons[index]) buttons[index].classList.add('active-sub-tab');
+
+      newTab.querySelectorAll('iframe').forEach(iframe => {
+        if (!iframe.src) {
+          iframe.src = iframe.dataset.src;
         }
       });
     }
 
-    // Load the first iframe immediately on page load
-    window.addEventListener("DOMContentLoaded", () => {
-      const first = document.querySelector(".tab-content.active iframe");
-      if (first && !first.src) {
-        first.src = first.dataset.src;
-      }
-    });
+    // Activate first tab on load
+    document.querySelector('.tab-buttons button')?.click();
   </script>
 </body>
 </html>
