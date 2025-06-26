@@ -1,11 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Test Single Chart</title>
-</head>
-<body>
-  <h1>Test Single Chart</h1>
-  <iframe src="charts_html/Feeder_Cattle_Bulls_Medium_and_Large_1_None_.html" width="100%" height="700" style="border:none;"></iframe>
-</body>
-</html>
+<script>
+  // Just load the first chart iframe directly
+  const contentContainer = document.getElementById('tab-contents');
+  const wrapper = document.createElement('div');
+  wrapper.className = 'chart-wrapper';
+
+  const iframe = document.createElement('iframe');
+  iframe.src = "charts_html/Feeder_Cattle_Bulls_Medium_and_Large_1_None_.html";
+  iframe.style.width = "100%";
+  iframe.style.height = "700px";
+  iframe.style.border = "none";
+
+  wrapper.appendChild(iframe);
+  contentContainer.appendChild(wrapper);
+</script>
