@@ -10,10 +10,26 @@
       padding: 2em;
       max-width: 100%;
       margin: auto;
+      position: relative;
     }
 
     h1 {
       text-align: center;
+    }
+
+    .note {
+      position: absolute;
+      top: 2em;
+      right: 2em;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 0.75em 1em;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      font-size: 0.9em;
+      line-height: 1.4;
+      max-width: 300px;
+      z-index: 1000;
     }
 
     .tab-buttons, .sub-tab-buttons {
@@ -69,32 +85,36 @@
 </head>
 <body>
   <h1>Florida Cattle Market Average Reports</h1>
+  <div class="note">
+    Click and drag to zoom in, Double click to reset<br>
+    Click to hide a weight class, Double click to single out one class or reset the list
+  </div>
   <div class="tab-buttons" id="main-tabs"></div>
   <div id="tab-contents"></div>
 
   <script>
     const chartFiles = [
-      "charts_html/Feeder_Cattle_Bulls_Medium_and_Large_1_None_.html",
-      "charts_html/Feeder_Cattle_Bulls_Medium_and_Large_2_None_.html",
-      "charts_html/Feeder_Cattle_Bulls_Medium_and_Large_3_None_.html",
-      "charts_html/Feeder_Cattle_Heifers_Medium_and_Large_1_None_.html",
-      "charts_html/Feeder_Cattle_Heifers_Medium_and_Large_2_None_.html",
-      "charts_html/Feeder_Cattle_Heifers_Medium_and_Large_3_None_.html",
-      "charts_html/Feeder_Cattle_Steers_Medium_and_Large_1_None_.html",
-      "charts_html/Feeder_Cattle_Steers_Medium_and_Large_2_None_.html",
-      "charts_html/Feeder_Cattle_Steers_Medium_and_Large_3_None_.html",
-      "charts_html/Replacement_Cattle_Bred_Cows_Large_1_2_None_.html",
-      "charts_html/Replacement_Cattle_Bred_Cows_Medium_and_Large_1_2_None_.html",
-      "charts_html/Replacement_Cattle_Bred_Cows_Medium_and_Large_2_3_None_.html",
-      "charts_html/Replacement_Cattle_Bred_Cows_Small_and_Medium_1_2_None_.html",
-      "charts_html/Replacement_Cattle_Cow_Calf_Pairs_Medium_and_Large_1_2_None_.html",
-      "charts_html/Replacement_Cattle_Cow_Calf_Pairs_Small_3_None_.html",
-      "charts_html/Replacement_Cattle_Cow_Calf_Pairs_Small_and_Medium_1_2_None_.html",
-      "charts_html/Replacement_Cattle_Stock_Cows_Medium_and_Large_1_2_None_.html",
-      "charts_html/Slaughter_Cattle_Bulls.html",
-      "charts_html/Slaughter_Cattle_Cows_Boner_80_85.html",
-      "charts_html/Slaughter_Cattle_Cows_Breaker_75_80.html",
-      "charts_html/Slaughter_Cattle_Cows_Lean_85_90.html"
+      "charts_html/Feeder_Cattle_Bulls_Medium_and_Large_1.html",
+      "charts_html/Feeder_Cattle_Bulls_Medium_and_Large_2.html",
+      "charts_html/Feeder_Cattle_Bulls_Medium_and_Large_3.html",
+      "charts_html/Feeder_Cattle_Heifers_Medium_and_Large_1.html",
+      "charts_html/Feeder_Cattle_Heifers_Medium_and_Large_2.html",
+      "charts_html/Feeder_Cattle_Heifers_Medium_and_Large_3.html",
+      "charts_html/Feeder_Cattle_Steers_Medium_and_Large_1.html",
+      "charts_html/Feeder_Cattle_Steers_Medium_and_Large_2.html",
+      "charts_html/Feeder_Cattle_Steers_Medium_and_Large_3.html",
+      "charts_html/Replacement_Cattle_Bred_Cows_Large_1-2.html",
+      "charts_html/Replacement_Cattle_Bred_Cows_Medium_and_Large_1-2.html",
+      "charts_html/Replacement_Cattle_Bred_Cows_Medium_and_Large_2-3.html",
+      "charts_html/Replacement_Cattle_Bred_Cows_Small_and_Medium_1-2.html",
+      "charts_html/Replacement_Cattle_Cow-Calf_Pairs_Medium_and_Large_1-2.html",
+      "charts_html/Replacement_Cattle_Cow-Calf_Pairs_Small_3.html",
+      "charts_html/Replacement_Cattle_Cow-Calf_Pairs_Small_and_Medium_1-2.html",
+      "charts_html/Replacement_Cattle_Stock_Cows_Medium_and_Large_1-2.html",
+      "charts_html/Slaughter_Cattle_Bulls_NA_NA_NA.html",
+      "charts_html/Slaughter_Cattle_Cows_NA_NA_Boner_80-85.html",
+      "charts_html/Slaughter_Cattle_Cows_NA_NA_Breaker_75-80.html",
+      "charts_html/Slaughter_Cattle_Cows_NA_NA_Lean_85-90.html",
     ];
 
     const structure = {};
@@ -104,10 +124,21 @@
         .replace(/charts_html\//, '')
         .replace(/\.html$/, '')
         .replace(/_/g, ' ')
-        .replace(/\s+None\s+/g, '')
-        .replace(/\s+N A\s+/g, '')
+        .replace(/\s+None\s*/gi, '')
+        .replace(/\s+N A\s*/gi, '')
         .replace(/\s+/g, ' ')
         .trim();
+    }
+
+    function formatGrade(grade, category, type) {
+      if (category === "Slaughter Cattle" && type === "Cows") {
+        // Remove extra NA in front
+        return grade.replace(/^NA NA /, '').replace(/(\d+)-(\d+)$/, '$1–$2%');
+      } else if (category === "Slaughter Cattle" && type === "Bulls") {
+        return ''; // Don't show grade at all
+      } else {
+        return grade.replace(/^.*?(?=\d)/, '').replace(/(\d+)-(\d+)$/, '$1–$2');
+      }
     }
 
     chartFiles.forEach(file => {
@@ -162,9 +193,12 @@
         const sortedGrades = Object.keys(grades).sort();
 
         sortedGrades.forEach(grade => {
-          const title = document.createElement('h3');
-          title.innerText = grade ? `Grade: ${grade}` : '';
-          subContent.appendChild(title);
+          const formattedGrade = formatGrade(grade, category, type);
+          if (formattedGrade) {
+            const title = document.createElement('h3');
+            title.innerText = `Grade: ${formattedGrade}`;
+            subContent.appendChild(title);
+          }
 
           grades[grade].forEach(file => {
             const wrapper = document.createElement('div');

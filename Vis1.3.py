@@ -5,16 +5,18 @@ import plotly.express as px
 import os
 import re
 
-# Load combined data
+# Load data
 df = pd.read_csv("All_Sale_Barns_Combined.csv")
 
+# Convert and clean date
 df["date"] = pd.to_datetime(df["report_date"], errors="coerce")
 df = df.dropna(subset=["date"])
 df["week"] = df["date"] - pd.to_timedelta(df["date"].dt.weekday, unit='d')
 
+# Output folder
 os.makedirs("charts_html", exist_ok=True)
 
-# All filters (matches column name prefixes)
+# Define filters you're interested in
 filters_to_plot = [
     "Feeder Cattle_Bulls_Medium and Large_1_None_",
     "Feeder Cattle_Bulls_Medium and Large_2_None_",
@@ -42,12 +44,7 @@ filters_to_plot = [
     "Slaughter Cattle_Cows_N/A_N/A_Lean 85-90%_"
 ]
 
-# Clean file-safe names
-def clean_filename(name):
-    name = name.replace(" ", "_")
-    name = name.replace("/", "_")
-    return re.sub(r'[^a-zA-Z0-9_]', '', name)
-
+# For each filter, find matching weight class columns and plot
 for base_filter in filters_to_plot:
     matching_cols = [col for col in df.columns if col.startswith(base_filter) and col.endswith("_avg_price")]
 
@@ -55,24 +52,32 @@ for base_filter in filters_to_plot:
         print(f"⚠️ No columns found for {base_filter}")
         continue
 
+    # Combine data for all matching weight classes
     melted = pd.melt(
         df[["week"] + matching_cols],
         id_vars=["week"],
         value_vars=matching_cols,
         var_name="filter_weight",
         value_name="avg_price"
-    ).dropna(subset=["avg_price"])
+    )
+    melted = melted.dropna(subset=["avg_price"])
 
+    # Extract weight class (e.g., "400-499") from column name
     melted["weight_class"] = melted["filter_weight"].str.extract(rf"{re.escape(base_filter)}(.+)_avg_price")
 
+    # Skip if extraction fails
     if melted["weight_class"].isna().all():
         print(f"⚠️ No weight class parsed for {base_filter}")
         continue
 
+    # Sort by weight_class and week to avoid jumping lines
     melted = melted.sort_values(by=["weight_class", "week"])
+
+    # Group by week and weight_class to get average avg_price per group
     melted = melted.groupby(["week", "weight_class"], as_index=False)["avg_price"].mean()
 
-    melted["weight_sort"] = melted["weight_class"].str.extract(r"(\\d+)", expand=False).astype(float)
+    # Sort weight_class values numerically by their lower bound
+    melted["weight_sort"] = melted["weight_class"].str.extract(r"(\d+)", expand=False).astype(float)
     weight_order = (
         melted[["weight_class", "weight_sort"]]
         .drop_duplicates()
@@ -80,13 +85,27 @@ for base_filter in filters_to_plot:
         .tolist()
     )
 
+    # Clean title for chart
+    clean_title = base_filter
+    clean_title = clean_title.replace('_', ' ')
+    clean_title = re.sub(r'\b(None|N/A|N A)\b', '', clean_title, flags=re.IGNORECASE)
+    clean_title = re.sub(r'\s+', ' ', clean_title).strip()
+
+    # Clean filename
+    clean_filename = base_filter
+    clean_filename = clean_filename.replace(" ", "_")
+    clean_filename = re.sub(r'[%/:]', '', clean_filename)
+    clean_filename = re.sub(r'(None|N/A|N_A)', '', clean_filename, flags=re.IGNORECASE)
+    clean_filename = re.sub(r'_+', '_', clean_filename).strip('_')
+
+    # Plot
     fig = px.line(
         melted,
         x="week",
         y="avg_price",
         color="weight_class",
         category_orders={"weight_class": weight_order},
-        title=f"Weekly Avg Price by Weight: {base_filter}",
+        title=f"Weekly Avg Price by Weight: {clean_title}",
         labels={"week": "Week", "avg_price": "Average Price ($/cwt)", "weight_class": "Weight Class"},
         markers=True
     )
@@ -98,7 +117,9 @@ for base_filter in filters_to_plot:
         legend=dict(title="Weight Class")
     )
 
-    safe_name = clean_filename(base_filter)
-    fig.write_html(f"charts_html/{safe_name}.html")
+    # Save plot to file
+    output_path = f"charts_html/{clean_filename}.html"
+    fig.write_html(output_path)
+    print(f"✅ Saved: {output_path}")
 
 print("✅ All interactive charts saved to the 'charts_html/' folder.")
