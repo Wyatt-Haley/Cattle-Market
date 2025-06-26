@@ -4,7 +4,7 @@ import os
 
 # === Change this to get your information ===
 slug_ids = ['1418', '1608', '1419', '1607', '1420', '1424', '1609', '1422', '1423']   # Add as many as you like
-timeperiod = 'q=report_begin_date=06/06/2022:06/03/2025'
+timeperiod = 'q=report_begin_date=06/26/2022:06/26/2025'
 save_folder = "."
 
 # Function to fetch and process report data for a given slug_id and time period
@@ -28,9 +28,9 @@ def process_slug(slug_id, timeperiod, save_folder="."):
     # Adding 100 pound weight class
     df['weight_class'] = pd.cut(
     df['avg_weight'],
-    bins=range(0, 2001, 100),  # 0-99, 100–199, ..., 1900–1999
+    bins=range(0, 3001, 100),  # 0-99, 100–199, ..., 1900–1999
     right=False,
-    labels=[f"{i}-{i+99}" for i in range(0, 2000, 100)]
+    labels=[f"{i}-{i+99}" for i in range(0, 3000, 100)]
 )
 
     # Create class identifier

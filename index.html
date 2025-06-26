@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Florida Cattle Market Average Reports</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f8f8;
+      padding: 2em;
+      max-width: 100%;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .tab-buttons, .sub-tab-buttons {
+      margin: 1em 0;
+    }
+
+    .tab-buttons button,
+    .sub-tab-buttons button {
+      margin-right: 5px;
+      padding: 8px 12px;
+      cursor: pointer;
+      background-color: #e0e0e0;
+      border: none;
+      border-radius: 4px;
+    }
+
+    .tab-buttons button.active-tab,
+    .sub-tab-buttons button.active-sub-tab {
+      background-color: #2196f3;
+      color: white;
+      font-weight: bold;
+    }
+
+    .tab-content, .sub-tab-content {
+      display: none;
+    }
+
+    .tab-content.active,
+    .sub-tab-content.active {
+      display: block;
+    }
+
+    .chart-wrapper {
+      text-align: center;
+      margin-bottom: 2em;
+      position: relative;
+      width: 100%;
+      overflow: visible;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    iframe {
+      width: 100%;
+      max-width: 2000px;
+      height: 700px;
+      border: none;
+      margin: 1em auto 2em auto;
+      display: block;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <h1>Florida Cattle Market Average Reports</h1>
+  <div class="tab-buttons" id="main-tabs"></div>
+  <div id="tab-contents"></div>
+
+  <script>
+    const chartFiles = [
+      "charts_html/Feeder_Cattle_Bulls_Medium_and_Large_1_None_.html",
+      "charts_html/Feeder_Cattle_Bulls_Medium_and_Large_2_None_.html",
+      "charts_html/Feeder_Cattle_Bulls_Medium_and_Large_3_None_.html",
+      "charts_html/Feeder_Cattle_Heifers_Medium_and_Large_1_None_.html",
+      "charts_html/Feeder_Cattle_Heifers_Medium_and_Large_2_None_.html",
+      "charts_html/Feeder_Cattle_Heifers_Medium_and_Large_3_None_.html",
+      "charts_html/Feeder_Cattle_Steers_Medium_and_Large_1_None_.html",
+      "charts_html/Feeder_Cattle_Steers_Medium_and_Large_2_None_.html",
+      "charts_html/Feeder_Cattle_Steers_Medium_and_Large_3_None_.html",
+      "charts_html/Replacement_Cattle_Bred_Cows_Large_1_2_None_.html",
+      "charts_html/Replacement_Cattle_Bred_Cows_Medium_and_Large_1_2_None_.html",
+      "charts_html/Replacement_Cattle_Bred_Cows_Medium_and_Large_2_3_None_.html",
+      "charts_html/Replacement_Cattle_Bred_Cows_Small_and_Medium_1_2_None_.html",
+      "charts_html/Replacement_Cattle_Cow_Calf_Pairs_Medium_and_Large_1_2_None_.html",
+      "charts_html/Replacement_Cattle_Cow_Calf_Pairs_Small_3_None_.html",
+      "charts_html/Replacement_Cattle_Cow_Calf_Pairs_Small_and_Medium_1_2_None_.html",
+      "charts_html/Replacement_Cattle_Stock_Cows_Medium_and_Large_1_2_None_.html",
+      "charts_html/Slaughter_Cattle_Bulls.html",
+      "charts_html/Slaughter_Cattle_Cows_Boner_80_85.html",
+      "charts_html/Slaughter_Cattle_Cows_Breaker_75_80.html",
+      "charts_html/Slaughter_Cattle_Cows_Lean_85_90.html"
+    ];
+
+    const structure = {};
+
+    function cleanName(name) {
+      return name
+        .replace(/charts_html\//, '')
+        .replace(/\.html$/, '')
+        .replace(/_/g, ' ')
+        .replace(/\s+None\s+/g, '')
+        .replace(/\s+N A\s+/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    chartFiles.forEach(file => {
+      const cleaned = cleanName(file);
+      const parts = cleaned.split(' ');
+      const category = parts[0] + ' ' + parts[1];
+      const type = parts[2];
+      const grade = parts.slice(3).join(' ');
+
+      if (!structure[category]) structure[category] = {};
+      if (!structure[category][type]) structure[category][type] = {};
+      if (!structure[category][type][grade]) structure[category][type][grade] = [];
+
+      structure[category][type][grade].push(file);
+    });
+
+    const tabContainer = document.getElementById('main-tabs');
+    const contentContainer = document.getElementById('tab-contents');
+
+    Object.keys(structure).forEach((category, catIdx) => {
+      const tabId = `tab-${catIdx}`;
+      const tabBtn = document.createElement('button');
+      tabBtn.innerText = category;
+      tabBtn.onclick = () => switchTab(tabId);
+      tabContainer.appendChild(tabBtn);
+
+      const tabContent = document.createElement('div');
+      tabContent.className = 'tab-content';
+      tabContent.id = tabId;
+
+      const subTabBtnWrapper = document.createElement('div');
+      subTabBtnWrapper.className = 'sub-tab-buttons';
+      tabContent.appendChild(subTabBtnWrapper);
+
+      const subContentWrapper = document.createElement('div');
+      tabContent.appendChild(subContentWrapper);
+
+      const types = structure[category];
+
+      Object.keys(types).forEach((type, typeIdx) => {
+        const subId = `${tabId}-sub-${typeIdx}`;
+        const subBtn = document.createElement('button');
+        subBtn.innerText = type;
+        subBtn.onclick = () => switchSubTab(subId, subContentWrapper);
+        subTabBtnWrapper.appendChild(subBtn);
+
+        const subContent = document.createElement('div');
+        subContent.className = 'sub-tab-content';
+        subContent.id = subId;
+
+        const grades = types[type];
+        const sortedGrades = Object.keys(grades).sort();
+
+        sortedGrades.forEach(grade => {
+          const title = document.createElement('h3');
+          title.innerText = grade ? `Grade: ${grade}` : '';
+          subContent.appendChild(title);
+
+          grades[grade].forEach(file => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'chart-wrapper';
+
+            const iframe = document.createElement('iframe');
+            iframe.dataset.src = file;
+            iframe.style.display = 'none';
+            iframe.setAttribute("scrolling", "no");
+            iframe.setAttribute("sandbox", "allow-scripts allow-same-origin");
+
+            iframe.onload = () => {
+              iframe.style.display = 'block';
+            };
+
+            wrapper.appendChild(iframe);
+            subContent.appendChild(wrapper);
+          });
+        });
+
+        subContentWrapper.appendChild(subContent);
+      });
+
+      contentContainer.appendChild(tabContent);
+    });
+
+    function switchTab(id) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+
+      document.querySelectorAll('.tab-buttons button').forEach(btn => btn.classList.remove('active-tab'));
+      const tabButtons = document.querySelectorAll('.tab-buttons button');
+      const index = [...document.querySelectorAll('.tab-content')].findIndex(el => el.id === id);
+      if (tabButtons[index]) tabButtons[index].classList.add('active-tab');
+
+      const firstSubTab = document.querySelector(`#${id} .sub-tab-content`);
+      if (firstSubTab) switchSubTab(firstSubTab.id, firstSubTab.parentElement);
+    }
+
+    function switchSubTab(subId, container) {
+      container.querySelectorAll('.sub-tab-content').forEach(el => el.classList.remove('active'));
+      const newTab = document.getElementById(subId);
+      newTab.classList.add('active');
+
+      const buttons = container.previousElementSibling.querySelectorAll('button');
+      buttons.forEach(btn => btn.classList.remove('active-sub-tab'));
+
+      const index = [...container.querySelectorAll('.sub-tab-content')].findIndex(el => el.id === subId);
+      if (buttons[index]) buttons[index].classList.add('active-sub-tab');
+
+      newTab.querySelectorAll('iframe').forEach(iframe => {
+        if (!iframe.src) {
+          iframe.src = iframe.dataset.src;
+        }
+      });
+    }
+
+    document.querySelector('.tab-buttons button')?.click();
+  </script>
+</body>
+</html>
