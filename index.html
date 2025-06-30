@@ -17,10 +17,36 @@
       text-align: center;
     }
 
-    .note {
+    .note-container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
       position: absolute;
       top: 2em;
       right: 2em;
+      z-index: 1000;
+    }
+
+    .toggle-note {
+      background-color: #e0e0e0;
+      color: black;
+      border: none;
+      padding: 0.5em 1em;
+      border-radius: 4px;
+      font-size: 0.95em;
+      cursor: pointer;
+      margin-bottom: 0.5em;
+      transition: background-color 0.3s ease;
+    }
+
+    .toggle-note.active {
+      background-color: #2196f3;
+      color: white;
+      font-weight: bold;
+    }
+
+    .note {
+      display: none;
       background: #fff;
       border: 1px solid #ccc;
       padding: 0.75em 1em;
@@ -29,7 +55,6 @@
       font-size: 0.9em;
       line-height: 1.4;
       max-width: 300px;
-      z-index: 1000;
     }
 
     .tab-buttons, .sub-tab-buttons {
@@ -85,14 +110,41 @@
 </head>
 <body>
   <h1>Florida Cattle Market Average Reports</h1>
-  <div class="note">
-    Click and drag to zoom in, Double click to reset<br>
-    Click to hide a weight class, Double click to single out one class or reset the list
+
+  <!-- Instructional message -->
+  <p style="text-align:center; color: #555;">
+    Select a category tab below to view cattle market graphs.
+  </p>
+
+  <!-- Collapsible tips and help -->
+  <div class="note-container">
+    <!-- Tips Section -->
+    <button class="toggle-note" onclick="toggleNote('note', this)">Show Tips</button>
+    <div class="note" id="note">
+      Click and drag to zoom in, Double click to reset<br>
+      Click to hide a weight class, Double click to single out one class or reset the list
+    </div>
+
+    <!-- Help Section -->
+    <button class="toggle-note" onclick="toggleNote('help-note', this)">Show Help</button>
+    <div class="note" id="help-note">
+      <strong>Help:</strong><br>
+      If weight classes or chart labels appear cut off, please refresh the page.
+    </div>
   </div>
+
   <div class="tab-buttons" id="main-tabs"></div>
   <div id="tab-contents"></div>
 
   <script>
+    function toggleNote(id, button) {
+      const note = document.getElementById(id);
+      const isOpen = note.style.display === 'block';
+      note.style.display = isOpen ? 'none' : 'block';
+      button.innerText = isOpen ? (id === 'note' ? 'Show Tips' : 'Show Help') : (id === 'note' ? 'Hide Tips' : 'Hide Help');
+      button.classList.toggle('active', !isOpen);
+    }
+
     const chartFiles = [
       "charts_html/Feeder_Cattle_Bulls_Medium_and_Large_1.html",
       "charts_html/Feeder_Cattle_Bulls_Medium_and_Large_2.html",
@@ -130,10 +182,9 @@
 
     function formatGrade(grade, category, type) {
       if (category === "Slaughter Cattle" && type === "Cows") {
-        // Remove extra NA in front
         return grade.replace(/^NA NA /, '').replace(/(\d+)-(\d+)$/, '$1–$2%');
       } else if (category === "Slaughter Cattle" && type === "Bulls") {
-        return ''; // Don't show grade at all
+        return '';
       } else {
         return grade.replace(/^.*?(?=\d)/, '').replace(/(\d+)-(\d+)$/, '$1–$2');
       }
@@ -232,8 +283,11 @@
       const index = [...document.querySelectorAll('.tab-content')].findIndex(el => el.id === id);
       if (tabButtons[index]) tabButtons[index].classList.add('active-tab');
 
-      const firstSubTab = document.querySelector(`#${id} .sub-tab-content`);
-      if (firstSubTab) switchSubTab(firstSubTab.id, firstSubTab.parentElement);
+      const container = document.getElementById(id);
+      const firstSubContent = container.querySelector('.sub-tab-content');
+      if (firstSubContent) {
+        switchSubTab(firstSubContent.id, firstSubContent.parentElement);
+      }
     }
 
     function switchSubTab(subId, container) {
@@ -254,7 +308,7 @@
       });
     }
 
-    document.querySelector('.tab-buttons button')?.click();
+    // No automatic tab open on page load
   </script>
 </body>
 </html>
