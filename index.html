@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Florida Cattle Market Average Reports</title>
+  <title>Cattle Market Average Reports</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -106,14 +106,45 @@
       display: block;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
+
+    /* Container for dropdown and clear button */
+    #controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1em;
+      margin-bottom: 1em;
+      flex-wrap: wrap;
+    }
+
+    #state-select {
+      padding: 0.5em;
+      font-size: 1em;
+      min-width: 150px;
+    }
+
+    #clear-button {
+      padding: 0.5em 1em;
+      font-size: 1em;
+      cursor: pointer;
+      background-color: #f44336;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+
+    #clear-button:hover {
+      background-color: #d32f2f;
+    }
   </style>
 </head>
 <body>
-  <h1>Florida Cattle Market Average Reports</h1>
+  <h1 id="page-title">Cattle Market Average Reports</h1>
 
   <!-- Instructional message -->
   <p style="text-align:center; color: #555;">
-    Select a category tab below to view cattle market graphs.
+    Select a state and then a category tab below to view cattle market graphs.
   </p>
 
   <!-- Collapsible tips and help -->
@@ -133,6 +164,14 @@
     </div>
   </div>
 
+  <!-- Controls: State dropdown + Clear button -->
+  <div id="controls">
+    <select id="state-select">
+      <option value="">Select a State</option>
+    </select>
+    <button id="clear-button">Clear Selection</button>
+  </div>
+
   <div class="tab-buttons" id="main-tabs"></div>
   <div id="tab-contents"></div>
 
@@ -145,33 +184,186 @@
       button.classList.toggle('active', !isOpen);
     }
 
+    // Full chartFiles list with state prefix
     const chartFiles = [
-      "charts_html/Feeder_Cattle_Bulls_Medium_and_Large_1.html",
-      "charts_html/Feeder_Cattle_Bulls_Medium_and_Large_2.html",
-      "charts_html/Feeder_Cattle_Bulls_Medium_and_Large_3.html",
-      "charts_html/Feeder_Cattle_Heifers_Medium_and_Large_1.html",
-      "charts_html/Feeder_Cattle_Heifers_Medium_and_Large_2.html",
-      "charts_html/Feeder_Cattle_Heifers_Medium_and_Large_3.html",
-      "charts_html/Feeder_Cattle_Steers_Medium_and_Large_1.html",
-      "charts_html/Feeder_Cattle_Steers_Medium_and_Large_2.html",
-      "charts_html/Feeder_Cattle_Steers_Medium_and_Large_3.html",
-      "charts_html/Replacement_Cattle_Bred_Cows_Medium_and_Large_1-2.html",
-      "charts_html/Replacement_Cattle_Bred_Cows_Medium_and_Large_2-3.html",
-      "charts_html/Replacement_Cattle_Bred_Cows_Small_and_Medium_1-2.html",
-      "charts_html/Replacement_Cattle_Cow-Calf_Pairs_Medium_and_Large_1-2.html",
-      "charts_html/Replacement_Cattle_Cow-Calf_Pairs_Small_3.html",
-      "charts_html/Replacement_Cattle_Cow-Calf_Pairs_Small_and_Medium_1-2.html",
-      "charts_html/Slaughter_Cattle_Bulls_NA_NA_NA.html",
-      "charts_html/Slaughter_Cattle_Cows_NA_NA_Boner_80-85.html",
-      "charts_html/Slaughter_Cattle_Cows_NA_NA_Breaker_75-80.html",
-      "charts_html/Slaughter_Cattle_Cows_NA_NA_Lean_85-90.html",
+      "charts_html/AL_Feeder_Cattle_Bulls_Medium_and_Large_1.html",
+      "charts_html/AL_Feeder_Cattle_Bulls_Medium_and_Large_2.html",
+      "charts_html/AL_Feeder_Cattle_Bulls_Medium_and_Large_3.html",
+      "charts_html/AL_Feeder_Cattle_Heifers_Medium_and_Large_1.html",
+      "charts_html/AL_Feeder_Cattle_Heifers_Medium_and_Large_2.html",
+      "charts_html/AL_Feeder_Cattle_Heifers_Medium_and_Large_3.html",
+      "charts_html/AL_Feeder_Cattle_Steers_Medium_and_Large_1.html",
+      "charts_html/AL_Feeder_Cattle_Steers_Medium_and_Large_2.html",
+      "charts_html/AL_Feeder_Cattle_Steers_Medium_and_Large_3.html",
+      "charts_html/AL_Replacement_Cattle_Bred_Cows_Large_1-2.html",
+      "charts_html/AL_Replacement_Cattle_Bred_Cows_Medium_and_Large_1-2.html",
+      "charts_html/AL_Replacement_Cattle_Bred_Cows_Medium_and_Large_2-3.html",
+      "charts_html/AL_Replacement_Cattle_Bred_Cows_Small_and_Medium_1-2.html",
+      "charts_html/AL_Replacement_Cattle_Bred_Heifers_Medium_and_Large_1-2.html",
+      "charts_html/AL_Replacement_Cattle_Cow-Calf_Pairs_Medium_and_Large_1-2.html",
+      "charts_html/AL_Replacement_Cattle_Cow-Calf_Pairs_Small_3.html",
+      "charts_html/AL_Replacement_Cattle_Stock_Cows_Medium_and_Large_1-2.html",
+      "charts_html/AL_Slaughter_Cattle_Bulls_NA_NA_NA.html",
+      "charts_html/AL_Slaughter_Cattle_Cows_NA_NA_Boner_80-85.html",
+      "charts_html/AL_Slaughter_Cattle_Cows_NA_NA_Breaker_75-80.html",
+      "charts_html/AL_Slaughter_Cattle_Cows_NA_NA_Lean_85-90.html",
+      "charts_html/AR_Feeder_Cattle_Bulls_Medium_and_Large_1.html",
+      "charts_html/AR_Feeder_Cattle_Bulls_Medium_and_Large_2.html",
+      "charts_html/AR_Feeder_Cattle_Bulls_Medium_and_Large_3.html",
+      "charts_html/AR_Feeder_Cattle_Heifers_Medium_and_Large_1.html",
+      "charts_html/AR_Feeder_Cattle_Heifers_Medium_and_Large_2.html",
+      "charts_html/AR_Feeder_Cattle_Heifers_Medium_and_Large_3.html",
+      "charts_html/AR_Feeder_Cattle_Steers_Medium_and_Large_1.html",
+      "charts_html/AR_Feeder_Cattle_Steers_Medium_and_Large_2.html",
+      "charts_html/AR_Feeder_Cattle_Steers_Medium_and_Large_3.html",
+      "charts_html/AR_Replacement_Cattle_Bred_Cows_Medium_and_Large_1-2.html",
+      "charts_html/AR_Replacement_Cattle_Bred_Cows_Medium_and_Large_2-3.html",
+      "charts_html/AR_Replacement_Cattle_Bred_Cows_Small_and_Medium_1-2.html",
+      "charts_html/AR_Replacement_Cattle_Bred_Heifers_Medium_and_Large_1-2.html",
+      "charts_html/AR_Replacement_Cattle_Cow-Calf_Pairs_Medium_and_Large_1-2.html",
+      "charts_html/AR_Replacement_Cattle_Cow-Calf_Pairs_Small_and_Medium_1-2.html",
+      "charts_html/AR_Replacement_Cattle_Cow-Calf_Pairs_Small_and_Medium_2-3.html",
+      "charts_html/AR_Replacement_Cattle_Stock_Cows_Medium_and_Large_1-2.html",
+      "charts_html/AR_Slaughter_Cattle_Bulls_NA_NA_NA.html",
+      "charts_html/AR_Slaughter_Cattle_Cows_NA_NA_Boner_80-85.html",
+      "charts_html/AR_Slaughter_Cattle_Cows_NA_NA_Breaker_75-80.html",
+      "charts_html/AR_Slaughter_Cattle_Cows_NA_NA_Lean_85-90.html",
+      "charts_html/FL_Feeder_Cattle_Bulls_Medium_and_Large_1.html",
+      "charts_html/FL_Feeder_Cattle_Bulls_Medium_and_Large_2.html",
+      "charts_html/FL_Feeder_Cattle_Bulls_Medium_and_Large_3.html",
+      "charts_html/FL_Feeder_Cattle_Heifers_Medium_and_Large_1.html",
+      "charts_html/FL_Feeder_Cattle_Heifers_Medium_and_Large_2.html",
+      "charts_html/FL_Feeder_Cattle_Heifers_Medium_and_Large_3.html",
+      "charts_html/FL_Feeder_Cattle_Steers_Medium_and_Large_1.html",
+      "charts_html/FL_Feeder_Cattle_Steers_Medium_and_Large_2.html",
+      "charts_html/FL_Feeder_Cattle_Steers_Medium_and_Large_3.html",
+      "charts_html/FL_Replacement_Cattle_Bred_Cows_Medium_and_Large_1-2.html",
+      "charts_html/FL_Replacement_Cattle_Cow-Calf_Pairs_Medium_and_Large_1-2.html",
+      "charts_html/FL_Slaughter_Cattle_Bulls_NA_NA_NA.html",
+      "charts_html/FL_Slaughter_Cattle_Cows_NA_NA_Boner_80-85.html",
+      "charts_html/FL_Slaughter_Cattle_Cows_NA_NA_Breaker_75-80.html",
+      "charts_html/FL_Slaughter_Cattle_Cows_NA_NA_Lean_85-90.html",
+      "charts_html/GA_Feeder_Cattle_Bulls_Medium_and_Large_1.html",
+      "charts_html/GA_Feeder_Cattle_Bulls_Medium_and_Large_2.html",
+      "charts_html/GA_Feeder_Cattle_Bulls_Medium_and_Large_3.html",
+      "charts_html/GA_Feeder_Cattle_Heifers_Medium_and_Large_1.html",
+      "charts_html/GA_Feeder_Cattle_Heifers_Medium_and_Large_2.html",
+      "charts_html/GA_Feeder_Cattle_Heifers_Medium_and_Large_3.html",
+      "charts_html/GA_Feeder_Cattle_Steers_Medium_and_Large_1.html",
+      "charts_html/GA_Feeder_Cattle_Steers_Medium_and_Large_2.html",
+      "charts_html/GA_Feeder_Cattle_Steers_Medium_and_Large_3.html",
+      "charts_html/GA_Replacement_Cattle_Bred_Cows_Large_1-2.html",
+      "charts_html/GA_Replacement_Cattle_Bred_Cows_Medium_and_Large_1-2.html",
+      "charts_html/GA_Replacement_Cattle_Bred_Cows_Medium_and_Large_2-3.html",
+      "charts_html/GA_Replacement_Cattle_Bred_Cows_Small_and_Medium_1-2.html",
+      "charts_html/GA_Replacement_Cattle_Bred_Heifers_Medium_and_Large_1-2.html",
+      "charts_html/GA_Replacement_Cattle_Cow-Calf_Pairs_Medium_and_Large_1-2.html",
+      "charts_html/GA_Slaughter_Cattle_Bulls_NA_NA_NA.html",
+      "charts_html/GA_Slaughter_Cattle_Cows_NA_NA_Boner_80-85.html",
+      "charts_html/GA_Slaughter_Cattle_Cows_NA_NA_Breaker_75-80.html",
+      "charts_html/GA_Slaughter_Cattle_Cows_NA_NA_Lean_85-90.html",
+      "charts_html/MS_Feeder_Cattle_Bulls_Medium_and_Large_1.html",
+      "charts_html/MS_Feeder_Cattle_Bulls_Medium_and_Large_2.html",
+      "charts_html/MS_Feeder_Cattle_Bulls_Medium_and_Large_3.html",
+      "charts_html/MS_Feeder_Cattle_Heifers_Medium_and_Large_1.html",
+      "charts_html/MS_Feeder_Cattle_Heifers_Medium_and_Large_2.html",
+      "charts_html/MS_Feeder_Cattle_Heifers_Medium_and_Large_3.html",
+      "charts_html/MS_Feeder_Cattle_Steers_Medium_and_Large_1.html",
+      "charts_html/MS_Feeder_Cattle_Steers_Medium_and_Large_2.html",
+      "charts_html/MS_Feeder_Cattle_Steers_Medium_and_Large_3.html",
+      "charts_html/MS_Replacement_Cattle_Bred_Cows_Large_1-2.html",
+      "charts_html/MS_Replacement_Cattle_Bred_Cows_Medium_and_Large_1-2.html",
+      "charts_html/MS_Replacement_Cattle_Bred_Cows_Medium_and_Large_2-3.html",
+      "charts_html/MS_Replacement_Cattle_Bred_Cows_Small_and_Medium_1-2.html",
+      "charts_html/MS_Replacement_Cattle_Bred_Heifers_Medium_and_Large_1-2.html",
+      "charts_html/MS_Replacement_Cattle_Cow-Calf_Pairs_Medium_and_Large_1-2.html",
+      "charts_html/MS_Replacement_Cattle_Cow-Calf_Pairs_Small_3.html",
+      "charts_html/MS_Replacement_Cattle_Cow-Calf_Pairs_Small_and_Medium_1-2.html",
+      "charts_html/MS_Replacement_Cattle_Cow-Calf_Pairs_Small_and_Medium_2-3.html",
+      "charts_html/MS_Replacement_Cattle_Stock_Cows_Large_1-2.html",
+      "charts_html/MS_Replacement_Cattle_Stock_Cows_Medium_and_Large_1-2.html",
+      "charts_html/MS_Slaughter_Cattle_Bulls_NA_NA_NA.html",
+      "charts_html/MS_Slaughter_Cattle_Cows_NA_NA_Boner_80-85.html",
+      "charts_html/MS_Slaughter_Cattle_Cows_NA_NA_Breaker_75-80.html",
+      "charts_html/MS_Slaughter_Cattle_Cows_NA_NA_Lean_85-90.html",
+      "charts_html/NC_Feeder_Cattle_Bulls_Medium_and_Large_1.html",
+      "charts_html/NC_Feeder_Cattle_Bulls_Medium_and_Large_2.html",
+      "charts_html/NC_Feeder_Cattle_Bulls_Medium_and_Large_3.html",
+      "charts_html/NC_Feeder_Cattle_Heifers_Medium_and_Large_1.html",
+      "charts_html/NC_Feeder_Cattle_Heifers_Medium_and_Large_2.html",
+      "charts_html/NC_Feeder_Cattle_Heifers_Medium_and_Large_3.html",
+      "charts_html/NC_Feeder_Cattle_Steers_Medium_and_Large_1.html",
+      "charts_html/NC_Feeder_Cattle_Steers_Medium_and_Large_2.html",
+      "charts_html/NC_Feeder_Cattle_Steers_Medium_and_Large_3.html",
+      "charts_html/NC_Replacement_Cattle_Bred_Cows_Medium_and_Large_1-2.html",
+      "charts_html/NC_Replacement_Cattle_Bred_Heifers_Medium_and_Large_1-2.html",
+      "charts_html/NC_Replacement_Cattle_Cow-Calf_Pairs_Medium_and_Large_1-2.html",
+      "charts_html/NC_Replacement_Cattle_Cow-Calf_Pairs_Small_and_Medium_1-2.html",
+      "charts_html/NC_Replacement_Cattle_Stock_Cows_Medium_and_Large_1-2.html",
+      "charts_html/NC_Slaughter_Cattle_Bulls_NA_NA_NA.html",
+      "charts_html/NC_Slaughter_Cattle_Cows_NA_NA_Boner_80-85.html",
+      "charts_html/NC_Slaughter_Cattle_Cows_NA_NA_Breaker_75-80.html",
+      "charts_html/NC_Slaughter_Cattle_Cows_NA_NA_Lean_85-90.html",
+      "charts_html/SC_Feeder_Cattle_Bulls_Medium_and_Large_1.html",
+      "charts_html/SC_Feeder_Cattle_Bulls_Medium_and_Large_2.html",
+      "charts_html/SC_Feeder_Cattle_Bulls_Medium_and_Large_3.html",
+      "charts_html/SC_Feeder_Cattle_Heifers_Medium_and_Large_1.html",
+      "charts_html/SC_Feeder_Cattle_Heifers_Medium_and_Large_2.html",
+      "charts_html/SC_Feeder_Cattle_Heifers_Medium_and_Large_3.html",
+      "charts_html/SC_Feeder_Cattle_Steers_Medium_and_Large_1.html",
+      "charts_html/SC_Feeder_Cattle_Steers_Medium_and_Large_2.html",
+      "charts_html/SC_Feeder_Cattle_Steers_Medium_and_Large_3.html",
+      "charts_html/SC_Replacement_Cattle_Bred_Cows_Medium_and_Large_1-2.html",
+      "charts_html/SC_Replacement_Cattle_Bred_Heifers_Medium_and_Large_1-2.html",
+      "charts_html/SC_Replacement_Cattle_Cow-Calf_Pairs_Medium_and_Large_1-2.html",
+      "charts_html/SC_Replacement_Cattle_Stock_Cows_Medium_and_Large_1-2.html",
+      "charts_html/SC_Slaughter_Cattle_Bulls_NA_NA_NA.html",
+      "charts_html/SC_Slaughter_Cattle_Cows_NA_NA_Boner_80-85.html",
+      "charts_html/SC_Slaughter_Cattle_Cows_NA_NA_Breaker_75-80.html",
+      "charts_html/SC_Slaughter_Cattle_Cows_NA_NA_Lean_85-90.html",
+      "charts_html/TN_Feeder_Cattle_Bulls_Medium_and_Large_1.html",
+      "charts_html/TN_Feeder_Cattle_Bulls_Medium_and_Large_2.html",
+      "charts_html/TN_Feeder_Cattle_Bulls_Medium_and_Large_3.html",
+      "charts_html/TN_Feeder_Cattle_Heifers_Medium_and_Large_1.html",
+      "charts_html/TN_Feeder_Cattle_Heifers_Medium_and_Large_2.html",
+      "charts_html/TN_Feeder_Cattle_Heifers_Medium_and_Large_3.html",
+      "charts_html/TN_Feeder_Cattle_Steers_Medium_and_Large_1.html",
+      "charts_html/TN_Feeder_Cattle_Steers_Medium_and_Large_2.html",
+      "charts_html/TN_Feeder_Cattle_Steers_Medium_and_Large_3.html",
+      "charts_html/TN_Replacement_Cattle_Bred_Cows_Large_1-2.html",
+      "charts_html/TN_Replacement_Cattle_Bred_Cows_Medium_and_Large_1-2.html",
+      "charts_html/TN_Replacement_Cattle_Bred_Cows_Medium_and_Large_2-3.html",
+      "charts_html/TN_Replacement_Cattle_Bred_Cows_Small_and_Medium_1-2.html",
+      "charts_html/TN_Replacement_Cattle_Bred_Heifers_Medium_and_Large_1-2.html",
+      "charts_html/TN_Replacement_Cattle_Cow-Calf_Pairs_Medium_and_Large_1-2.html",
+      "charts_html/TN_Replacement_Cattle_Cow-Calf_Pairs_Small_and_Medium_1-2.html",
+      "charts_html/TN_Replacement_Cattle_Stock_Cows_Medium_and_Large_1-2.html",
+      "charts_html/TN_Slaughter_Cattle_Bulls_NA_NA_NA.html",
+      "charts_html/TN_Slaughter_Cattle_Cows_NA_NA_Boner_80-85.html",
+      "charts_html/TN_Slaughter_Cattle_Cows_NA_NA_Breaker_75-80.html",
+      "charts_html/TN_Slaughter_Cattle_Cows_NA_NA_Lean_85-90.html"
     ];
 
-    const structure = {};
+    // Get unique states from filenames
+    const states = [...new Set(chartFiles.map(f => f.match(/charts_html\/([A-Z]{2})_/)[1]))].sort();
+
+    // Populate dropdown
+    const stateSelect = document.getElementById('state-select');
+    states.forEach(state => {
+      const option = document.createElement('option');
+      option.value = state;
+      option.text = state;
+      stateSelect.appendChild(option);
+    });
+
+    const tabContainer = document.getElementById('main-tabs');
+    const contentContainer = document.getElementById('tab-contents');
+    const pageTitle = document.getElementById('page-title');
+    const clearBtn = document.getElementById('clear-button');
 
     function cleanName(name) {
       return name
-        .replace(/charts_html\//, '')
+        .replace(/charts_html\/[A-Z]{2}_/, '') // remove state prefix
         .replace(/\.html$/, '')
         .replace(/_/g, ' ')
         .replace(/\s+None\s*/gi, '')
@@ -190,88 +382,124 @@
       }
     }
 
-    chartFiles.forEach(file => {
-      const cleaned = cleanName(file);
-      const parts = cleaned.split(' ');
-      const category = parts[0] + ' ' + parts[1];
-      const type = parts[2];
-      const grade = parts.slice(3).join(' ');
+    stateSelect.addEventListener('change', () => {
+      const selectedState = stateSelect.value;
+      clearTabsAndContent();
 
-      if (!structure[category]) structure[category] = {};
-      if (!structure[category][type]) structure[category][type] = {};
-      if (!structure[category][type][grade]) structure[category][type][grade] = [];
+      if (!selectedState) {
+        pageTitle.innerText = "Cattle Market Average Reports";
+        return;
+      }
 
-      structure[category][type][grade].push(file);
-    });
+      pageTitle.innerText = `Cattle Market Average Reports - ${selectedState}`;
 
-    const tabContainer = document.getElementById('main-tabs');
-    const contentContainer = document.getElementById('tab-contents');
+      // Filter charts for selected state
+      const filteredCharts = chartFiles.filter(f => f.startsWith(`charts_html/${selectedState}_`));
 
-    Object.keys(structure).forEach((category, catIdx) => {
-      const tabId = `tab-${catIdx}`;
-      const tabBtn = document.createElement('button');
-      tabBtn.innerText = category;
-      tabBtn.onclick = () => switchTab(tabId);
-      tabContainer.appendChild(tabBtn);
+      if (filteredCharts.length === 0) {
+        tabContainer.innerHTML = '<p>No charts available for this state.</p>';
+        return;
+      }
 
-      const tabContent = document.createElement('div');
-      tabContent.className = 'tab-content';
-      tabContent.id = tabId;
+      // Build nested structure: category -> type -> grade -> [files]
+      const structure = {};
+      filteredCharts.forEach(file => {
+        const cleaned = cleanName(file);
+        const parts = cleaned.split(' ');
+        const category = parts[0] + ' ' + parts[1];
+        const type = parts[2];
+        const grade = parts.slice(3).join(' ');
 
-      const subTabBtnWrapper = document.createElement('div');
-      subTabBtnWrapper.className = 'sub-tab-buttons';
-      tabContent.appendChild(subTabBtnWrapper);
+        if (!structure[category]) structure[category] = {};
+        if (!structure[category][type]) structure[category][type] = {};
+        if (!structure[category][type][grade]) structure[category][type][grade] = [];
 
-      const subContentWrapper = document.createElement('div');
-      tabContent.appendChild(subContentWrapper);
-
-      const types = structure[category];
-
-      Object.keys(types).forEach((type, typeIdx) => {
-        const subId = `${tabId}-sub-${typeIdx}`;
-        const subBtn = document.createElement('button');
-        subBtn.innerText = type;
-        subBtn.onclick = () => switchSubTab(subId, subContentWrapper);
-        subTabBtnWrapper.appendChild(subBtn);
-
-        const subContent = document.createElement('div');
-        subContent.className = 'sub-tab-content';
-        subContent.id = subId;
-
-        const grades = types[type];
-        const sortedGrades = Object.keys(grades).sort();
-
-        sortedGrades.forEach(grade => {
-          const formattedGrade = formatGrade(grade, category, type);
-          if (formattedGrade) {
-            const title = document.createElement('h3');
-            title.innerText = `Grade: ${formattedGrade}`;
-            subContent.appendChild(title);
-          }
-
-          grades[grade].forEach(file => {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'chart-wrapper';
-
-            const iframe = document.createElement('iframe');
-            iframe.dataset.src = file;
-            iframe.style.display = 'none';
-            iframe.setAttribute("scrolling", "no");
-            iframe.setAttribute("sandbox", "allow-scripts allow-same-origin");
-
-            iframe.onload = () => {
-              iframe.style.display = 'block';
-            };
-
-            wrapper.appendChild(iframe);
-            subContent.appendChild(wrapper);
-          });
-        });
-
-        subContentWrapper.appendChild(subContent);
+        structure[category][type][grade].push(file);
       });
 
-      contentContainer.appendChild(tabContent);
+      // Create main category tabs
+      Object.keys(structure).forEach((category, catIdx) => {
+        const tabId = `tab-${catIdx}`;
+        const tabBtn = document.createElement('button');
+        tabBtn.innerText = category;
+        tabBtn.onclick = () => switchTab(tabId);
+        tabContainer.appendChild(tabBtn);
+
+        const tabContent = document.createElement('div');
+        tabContent.className = 'tab-content';
+        tabContent.id = tabId;
+
+        const subTabBtnWrapper = document.createElement('div');
+        subTabBtnWrapper.className = 'sub-tab-buttons';
+        tabContent.appendChild(subTabBtnWrapper);
+
+        const subContentWrapper = document.createElement('div');
+        tabContent.appendChild(subContentWrapper);
+
+        const types = structure[category];
+
+        Object.keys(types).forEach((type, typeIdx) => {
+          const subId = `${tabId}-sub-${typeIdx}`;
+          const subBtn = document.createElement('button');
+          subBtn.innerText = type;
+          subBtn.onclick = () => switchSubTab(subId, subContentWrapper);
+          subTabBtnWrapper.appendChild(subBtn);
+
+          const subContent = document.createElement('div');
+          subContent.className = 'sub-tab-content';
+          subContent.id = subId;
+
+          const grades = types[type];
+          // Custom sort for Slaughter Cattle -> Cows grade order
+          let sortedGrades = Object.keys(types[type]);
+
+            if (category === "Slaughter Cattle" && type === "Cows") {
+            const order = { "Breaker": 0, "Boner": 1, "Lean": 2 };
+           sortedGrades.sort((a, b) => {
+            const aKey = Object.keys(order).find(k => a.includes(k)) ?? a;
+            const bKey = Object.keys(order).find(k => b.includes(k)) ?? b;
+            return (order[aKey] ?? 99) - (order[bKey] ?? 99);
+            });
+            } else {
+           sortedGrades.sort();
+          }
+
+          sortedGrades.forEach(grade => {
+            const formattedGrade = formatGrade(grade, category, type);
+            if (formattedGrade) {
+              const title = document.createElement('h3');
+              title.innerText = `Grade: ${formattedGrade}`;
+              subContent.appendChild(title);
+            }
+
+            grades[grade].forEach(file => {
+              const wrapper = document.createElement('div');
+              wrapper.className = 'chart-wrapper';
+
+              const iframe = document.createElement('iframe');
+              iframe.dataset.src = file;
+              iframe.style.display = 'none';
+              iframe.setAttribute("scrolling", "no");
+              iframe.setAttribute("sandbox", "allow-scripts allow-same-origin");
+
+              iframe.onload = () => {
+                iframe.style.display = 'block';
+              };
+
+              wrapper.appendChild(iframe);
+              subContent.appendChild(wrapper);
+            });
+          });
+
+          subContentWrapper.appendChild(subContent);
+        });
+
+        contentContainer.appendChild(tabContent);
+      });
+
+      // Automatically activate the first main tab and its first sub-tab
+      const firstTabBtn = tabContainer.querySelector('button');
+      if (firstTabBtn) firstTabBtn.click();
     });
 
     function switchTab(id) {
@@ -301,6 +529,7 @@
       const index = [...container.querySelectorAll('.sub-tab-content')].findIndex(el => el.id === subId);
       if (buttons[index]) buttons[index].classList.add('active-sub-tab');
 
+      // Load iframe src lazily
       newTab.querySelectorAll('iframe').forEach(iframe => {
         if (!iframe.src) {
           iframe.src = iframe.dataset.src;
@@ -308,7 +537,20 @@
       });
     }
 
-    // No automatic tab open on page load
+    function clearTabsAndContent() {
+      tabContainer.innerHTML = '';
+      contentContainer.innerHTML = '';
+      // Reset page title
+      pageTitle.innerText = "Cattle Market Average Reports";
+    }
+
+    clearBtn.addEventListener('click', () => {
+      stateSelect.value = '';
+      clearTabsAndContent();
+    });
+
+    // On page load, clear everything
+    clearTabsAndContent();
   </script>
 </body>
 </html>
