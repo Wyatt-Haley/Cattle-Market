@@ -2,7 +2,7 @@ import requests
 import pandas as pd
 import os
 
-timeperiod = 'q=report_begin_date=06/29/2024:06/29/2025'
+timeperiod = 'q=report_begin_date=08/14/2024:08/14/2025'
 save_folder = "."
 
 def process_slug(slug_id, timeperiod, save_folder="."):
